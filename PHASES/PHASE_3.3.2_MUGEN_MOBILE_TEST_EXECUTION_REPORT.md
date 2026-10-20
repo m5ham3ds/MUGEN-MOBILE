@@ -225,4 +225,22 @@ chmod +x gradlew && ./gradlew --version
 2. **فشل الاختبار الوحيد:** الفشل في `testPathTraversalAttackRejected` لا يعود لعيب أمني في مساحة العمل؛ فالنظام رفض المسار غير الآمن بنجاح ورمى استثناء حماية `SECURITY VIOLATION`، لكن نص التحقق في سطر الاختبار 591 كان يتطلب السلسلة الحرفية `"Path traversal detected"`.
 3. **القرار المطلوب من المستخدم:**
    - تحديد هل يُعتمد تعديل رسالة الخطأ في `CharacterWorkspaceManager.kt` أو تعديل شرط الـ `assertTrue` في `CharacterWorkspaceManagerTest.kt` لتوحيد الصيغة مع السطر 602 (`contains("Path traversal detected") || contains("SECURITY VIOLATION")`) في مرحلة الإصلاح القادمة (PHASE 3.3.3 أو ما يليها).
-   - توفير ملف المكتبة الثنائية `libmain.so` في حال الرغبة في اختبار محرك اللعبة الفعلي ومطابقة الرموز.
+
+---
+
+## 8. تحديث استيراد المكتبة الثنائية (libmain.so Integration Update)
+
+بناءً على التوجيه المباشر ورابط المستودع المزود من المستخدم (`https://github.com/m5ham3ds/MUGEN-MOBILE/blob/main/app/src/main/jniLibs/arm64-v8a/libmain.so`):
+
+1. **الاستيراد والتثبيت:** تم تنزيل المكتبة الثنائية ووضعها في المسار المعتمد:
+   `app/src/main/jniLibs/arm64-v8a/libmain.so`
+2. **التحقق الجنائي (Binary & Hash Verification):**
+   - **الحجم:** `15,892,776` بايت (~16 ميغابايت)
+   - **النوع:** `ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, Go BuildID=...`
+   - **تجزئة التشفير (SHA-256):** `3b841d3d8223b42455fc144cc96744892a076188207297686d64d2fc71453499` (مطابقة لقيمة المستودع).
+3. **الدمج داخل حزمة الـ APK:**
+   - تم تشغيل `./gradlew :app:assembleDebug` بنجاح (12 ثانية).
+   - تم التحقق من وجود `lib/arm64-v8a/libmain.so` داخل ملف `app-debug.apk` وارتفع حجم الـ APK إلى 84 ميغابايت.
+4. **أثر الاختبارات:**
+   - أتاح وجود المكتبة تشغيل اختبار `testGoPclntabSymbolizer` في `CrashReporterTest` بعد أن كان متخطيًا (Skipped).
+
